@@ -420,8 +420,12 @@
       const friends = me.friends || [];
       if(friends.length===0){ list.innerHTML = '<p class="muted">No friends yet. Add friends to chat.</p>'; return }
       friends.forEach(email=>{
-        const u = getUserByEmail(email);
-        const el = document.createElement('div'); el.className='friend'; el.textContent = (u&&u.name)?u.name+' — '+email:email;
+        const u = getUserByEmail(email); ensureUserFields(u);
+        const el = document.createElement('div'); el.className='friend';
+        const avatar = document.createElement('img'); avatar.className='avatar';
+        avatar.src = (u && u.profilePic) ? u.profilePic : ('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="%23eceff6"/></svg>');
+        const name = document.createElement('div'); name.className='name'; name.textContent = (u&&u.name)?u.name:email;
+        el.appendChild(avatar); el.appendChild(name);
         el.addEventListener('click', ()=>openChatWith(email));
         list.appendChild(el);
       });
@@ -431,8 +435,16 @@
     function openChatWith(email){
       const header = document.getElementById('chatHeader'); const msgs = document.getElementById('messagesList');
       const current = getCurrent(); if(!current) return;
-      const other = getUserByEmail(email);
-      header.textContent = (other && other.name) ? other.name + ' — ' + email : email;
+      const other = getUserByEmail(email); ensureUserFields(other);
+      // show avatar + username in header
+      if(header){
+        const img = document.createElement('img'); img.src = (other && other.profilePic) ? other.profilePic : ('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><rect width="100%" height="100%" fill="%23eceff6"/></svg>');
+        img.style.width='36px'; img.style.height='36px'; img.style.borderRadius='50%'; img.style.objectFit='cover'; img.style.marginRight='8px';
+        header.innerHTML = '';
+        const headerWrap = document.createElement('div'); headerWrap.style.display='flex'; headerWrap.style.alignItems='center';
+        const title = document.createElement('div'); title.textContent = (other && other.name) ? other.name : email; title.style.fontWeight='700';
+        headerWrap.appendChild(img); headerWrap.appendChild(title); header.appendChild(headerWrap);
+      }
       activeChat = email;
       renderMessages();
     }
@@ -556,9 +568,21 @@
       grid.innerHTML = '';
       const users = getUsers();
       const tiles = [];
-      users.forEach(u=>{ (u.posts||[]).forEach(p=>{ if(p.img && (!p.mediaType || p.mediaType==='image')) tiles.push({img:p.img, user:u.email, caption:p.caption}); }) });
+      users.forEach(u=>{
+        ensureUserFields(u);
+        const userName = u.name || u.email;
+        (u.posts||[]).forEach(p=>{
+          if(p.img && (!p.mediaType || p.mediaType==='image')) tiles.push({img:p.img, userEmail:u.email, userName:userName, caption:p.caption});
+        });
+      });
       if(tiles.length===0){ grid.innerHTML = '<p class="muted">No photos yet.</p>'; return }
-      tiles.forEach(t=>{ const tile = document.createElement('div'); tile.className='tile'; const img = document.createElement('img'); img.src = t.img; tile.appendChild(img); const cap = document.createElement('div'); cap.className='muted'; cap.style.fontSize='0.85rem'; cap.textContent = `${t.user} ${t.caption?'- '+t.caption:''}`; tile.appendChild(cap); grid.appendChild(tile); });
+      tiles.forEach(t=>{
+        const tile = document.createElement('div'); tile.className='tile';
+        const img = document.createElement('img'); img.src = t.img; tile.appendChild(img);
+        const cap = document.createElement('div'); cap.className='muted'; cap.style.fontSize='0.85rem';
+        cap.textContent = `${t.userName}${t.caption? ' - '+t.caption:''}`;
+        tile.appendChild(cap); grid.appendChild(tile);
+      });
     }
 
     // Achievements: species list and unlocked detection
