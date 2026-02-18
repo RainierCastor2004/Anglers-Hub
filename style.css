@@ -44,7 +44,11 @@ body{
 .nav-search{display:flex;align-items:center;gap:8px;margin-left:6px}
 .search-input{padding:8px 10px;border-radius:8px;border:1px solid rgba(15,23,42,0.08);min-width:180px}
 .nav-search .btn.small{padding:6px 8px}
-@media (max-width:480px){.search-input{min-width:110px} .nav-search{display:none}}
+@media (max-width:480px){
+  .search-input{min-width:110px}
+  /* keep nav-search visible on small screens (Android web) */
+  .nav-search{display:flex}
+}
 
 /* Search results dropdown */
 .search-results{position:absolute;background:var(--card);border:1px solid rgba(15,23,42,0.06);box-shadow:0 8px 20px rgba(2,6,23,0.06);border-radius:8px;overflow:hidden;margin-top:6px;min-width:220px;z-index:1200}
