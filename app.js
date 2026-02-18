@@ -129,6 +129,13 @@
     const logoutBtn = $('logout');
     if(logoutBtn){ logoutBtn.addEventListener('click', ()=>{ clearCurrent(); window.location.href='index.html' }) }
 
+    // register service worker for PWA install (if supported)
+    try{
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+      }
+    }catch(e){}
+
     /* --------------------
        Nav search (shared)
        -------------------- */
