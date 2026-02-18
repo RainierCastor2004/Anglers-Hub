@@ -139,7 +139,17 @@
     /* --------------------
        Nav search (shared)
        -------------------- */
-    function normalizeQuery(s){ try{ return (s||'').toString().normalize('NFKD').replace(/\p{Diacritic}/gu,'').toLowerCase().trim(); }catch(e){ return (s||'').toString().toLowerCase().trim(); } }
+    function normalizeQuery(s){
+      try{
+        let t = (s||'').toString().normalize('NFKD').replace(/\p{Diacritic}/gu,'').toLowerCase();
+        // remove punctuation / non-alphanumeric (keep spaces), collapse whitespace
+        t = t.replace(/[^0-9a-z\s]/g, ' ');
+        t = t.replace(/\s+/g,' ').trim();
+        return t;
+      }catch(e){
+        try{ return (s||'').toString().toLowerCase().replace(/[^0-9a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }catch(e2){ return (s||'').toString().toLowerCase().trim(); }
+      }
+    }
 
     function searchUsers(q){
       q = normalizeQuery(q);
