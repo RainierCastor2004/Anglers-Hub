@@ -29,7 +29,20 @@
     <section class="card">
       <h1>People</h1>
       <p class="muted">Browse all registered users. Click "View" to open a profile.</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <button id="showRawUsers" class="btn small">Show raw users (debug)</button>
+        <span class="muted" style="font-size:0.9rem">Use this to inspect stored user records.</span>
+      </div>
       <div id="usersList" style="margin-top:12px;display:flex;flex-direction:column;gap:10px"></div>
+      <div id="rawUsersOverlay" style="display:none;position:fixed;left:8px;right:8px;top:8px;bottom:8px;background:rgba(0,0,0,0.6);z-index:2000;padding:16px;overflow:auto">
+        <div style="background:var(--card);border-radius:8px;padding:12px;max-width:980px;margin:0 auto">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Raw users (storage)</strong>
+            <button id="closeRawUsers" class="btn small">Close</button>
+          </div>
+          <pre id="rawUsersPre" style="white-space:pre-wrap;word-break:break-word;max-height:70vh;overflow:auto;background:transparent;border:1px solid rgba(15,23,42,0.04);padding:8px;border-radius:6px"></pre>
+        </div>
+      </div>
     </section>
   </main>
   <script src="app.js"></script>

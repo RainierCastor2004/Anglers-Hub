@@ -646,6 +646,10 @@
     }catch(e){}
     try{ if(document.getElementById('usersList')){ renderUsersList(); } }catch(e){}
     try{
+      const btn = document.getElementById('showRawUsers'); if(btn) btn.addEventListener('click', showRawUsersOverlay);
+      const close = document.getElementById('closeRawUsers'); if(close) close.addEventListener('click', hideRawUsersOverlay);
+    }catch(e){}
+    try{
       if(document.getElementById('notificationsList')){ renderNotifications(); }
     }catch(e){}
 
@@ -716,6 +720,21 @@
         list.appendChild(card);
       });
     }
+
+    // Debug: show raw users JSON overlay (for diagnosing missing search results)
+    function showRawUsersOverlay(){
+      const overlay = document.getElementById('rawUsersOverlay'); const pre = document.getElementById('rawUsersPre');
+      if(!overlay || !pre) return;
+      const users = getUsers() || [];
+      // mark entries with missing name
+      const decorated = users.map(u=>{
+        const hasName = (u.name||'').toString().trim().length>0;
+        return Object.assign({}, u, {__missingName: !hasName});
+      });
+      pre.textContent = JSON.stringify(decorated, null, 2);
+      overlay.style.display = 'block';
+    }
+    function hideRawUsersOverlay(){ const overlay = document.getElementById('rawUsersOverlay'); if(overlay) overlay.style.display='none'; }
 
     // Achievements: species list and unlocked detection
     const SPECIES = [
