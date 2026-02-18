@@ -355,6 +355,49 @@
             fallback.appendChild(fb);
             controls.appendChild(fallback);
           }
+
+        // Export / Import profile data (helps move data between devices)
+        try{
+          const existingX = controls.querySelector('.profile-export-import'); if(existingX) existingX.remove();
+          const xi = document.createElement('div'); xi.className='profile-export-import'; xi.style.marginTop='10px'; xi.style.display='flex'; xi.style.gap='8px'; xi.style.flexWrap='wrap';
+          // download/export button
+          const exp = document.createElement('button'); exp.className='btn'; exp.textContent = 'Download Profile Data';
+          exp.addEventListener('click', ()=>{
+            const u = getUserByEmail(current.email); if(!u){ alert('No user data to export.'); return }
+            try{
+              const data = JSON.stringify(u);
+              const blob = new Blob([data], {type:'application/json'});
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = (u.email||'profile') + '.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+            }catch(e){ alert('Failed to create export file.'); }
+          });
+          // import button + hidden input appended to body
+          const imp = document.createElement('button'); imp.className='btn'; imp.textContent = 'Import Profile Data';
+          const impInput = document.createElement('input'); impInput.type='file'; impInput.accept='application/json'; impInput.style.display='none'; document.body.appendChild(impInput);
+          imp.addEventListener('click', ()=> impInput.click());
+          impInput.addEventListener('change', async ()=>{
+            const f = impInput.files && impInput.files[0]; if(!f) return;
+            try{
+              const txt = await (new Response(f)).text();
+              const obj = JSON.parse(txt);
+              if(!obj || !obj.email){ alert('Invalid profile file.'); return }
+              // merge with existing user store (replace user with same email)
+              const users = getUsers();
+              const idx = users.findIndex(x=>x.email===obj.email);
+              if(idx>=0) users[idx] = obj; else users.push(obj);
+              saveUsers(users);
+              // set current to imported user if it matches current email or ask to switch
+              if(obj.email === current.email){ setCurrent({name:obj.name,email:obj.email}, true); }
+              alert('Profile data imported. Refreshing view...');
+              renderProfile(viewEmail);
+              renderFriendActions(viewEmail);
+              renderPosts(viewEmail);
+              try{ renderGallery(); renderActivityFeed(); renderAchievements(); }catch(e){}
+            }catch(e){ alert('Failed to read import file.'); }
+          });
+          xi.appendChild(exp); xi.appendChild(imp);
+          controls.appendChild(xi);
+        }catch(e){}
         }catch(e){}
 
         // new post area: caption + choose button + preview + post button
