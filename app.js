@@ -145,12 +145,18 @@
       q = normalizeQuery(q);
       if(!q) return [];
       // for debugging: emit to console so it's easier to see why nothing appears
-      try{ console.debug('searchUsers query:', q); }catch(e){}
-      return getUsers().filter(u=>{
-        const name = normalizeQuery(u.name||'');
-        const email = normalizeQuery(u.email||'');
-        return name.includes(q) || email.includes(q);
-      });
+      try{ 
+        console.debug('searchUsers query:', q);
+        const users = getUsers() || [];
+        console.debug('searchUsers usersCount:', users.length);
+        // match only by username (the `name` field). Do not match email.
+        const matches = users.filter(u=>{
+          const name = normalizeQuery(u.name||'');
+          return name && name.includes(q);
+        });
+        console.debug('searchUsers matches:', matches.map(m=>({name:m.name,email:m.email}))); 
+        return matches;
+      }catch(e){ console.error('searchUsers error', e); return []; }
     }
 
     function createResultsContainer(){
@@ -167,6 +173,7 @@
       let container = resultsCache.get(form);
       if(!container) container = createResultsContainer(), resultsCache.set(form, container);
       container.innerHTML = '';
+      try{ console.debug('showResultsFor listLength:', (list && list.length) || 0, 'query:', q); }catch(e){}
       if(!list || list.length===0){
         // show a helpful empty state so users know the search ran
         const el = document.createElement('div'); el.className='item muted';
