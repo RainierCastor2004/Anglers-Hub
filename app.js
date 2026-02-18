@@ -544,17 +544,19 @@
 
     // run initial renders if on those pages
     try{
-      const p = window.location.pathname;
-      if(p.endsWith('profile.html')){
+      // Render profile when profile elements exist (works with pretty URLs like /profile)
+      if(document.getElementById('profilePic') || document.getElementById('postsList') || document.getElementById('friendActions')){
         const params = new URLSearchParams(window.location.search);
         const v = params.get('u') || (getCurrent() && getCurrent().email);
         renderFriendActions(v);
         renderProfile(v);
       }
     }catch(e){}
-    try{ if(window.location.pathname.endsWith('chats.html')){ renderFriendsList(); }
+    try{
+      if(document.getElementById('friendsList')){ renderFriendsList(); }
     }catch(e){}
-    try{ if(window.location.pathname.endsWith('notifications.html')){ renderNotifications(); }
+    try{
+      if(document.getElementById('notificationsList')){ renderNotifications(); }
     }catch(e){}
 
     // Home activity feed
@@ -647,9 +649,9 @@
       });
     }
 
-    // run pages renders
-    try{ if(window.location.pathname.endsWith('home.html')) renderActivityFeed(); }catch(e){}
-    try{ if(window.location.pathname.endsWith('gallery.html')) renderGallery(); }catch(e){}
-    try{ if(window.location.pathname.endsWith('achievements.html')) renderAchievements(); }catch(e){}
+    // run pages renders — detect by presence of page elements so pretty URLs work (Netlify, etc.)
+    try{ if(document.getElementById('activityFeed')) renderActivityFeed(); }catch(e){}
+    try{ if(document.getElementById('galleryGrid')) renderGallery(); }catch(e){}
+    try{ if(document.getElementById('speciesGrid')) renderAchievements(); }catch(e){}
   })
 })();
