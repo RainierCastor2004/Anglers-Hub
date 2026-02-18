@@ -648,6 +648,7 @@
     try{
       const btn = document.getElementById('showRawUsers'); if(btn) btn.addEventListener('click', showRawUsersOverlay);
       const close = document.getElementById('closeRawUsers'); if(close) close.addEventListener('click', hideRawUsersOverlay);
+      const seedBtn = document.getElementById('seedDemoUsers'); if(seedBtn) seedBtn.addEventListener('click', ()=>{ seedDemoUsers(); });
     }catch(e){}
     try{
       if(document.getElementById('notificationsList')){ renderNotifications(); }
@@ -735,6 +736,23 @@
       overlay.style.display = 'block';
     }
     function hideRawUsersOverlay(){ const overlay = document.getElementById('rawUsersOverlay'); if(overlay) overlay.style.display='none'; }
+
+    // seed demo users (useful if localStorage is empty or on first run)
+    async function seedDemoUsers(){
+      try{
+        const exists = getUsers(); if(exists && exists.length>0){ alert('Users already exist — seeding skipped.'); return }
+        const pw = 'password';
+        const h = await hashStr(pw);
+        const samples = [
+          {name:'Juan Dela Cruz', email:'juan@example.com', passwordHash:h, friends:[],friendRequests:[],posts:[]},
+          {name:'Maria Santos', email:'maria@example.com', passwordHash:h, friends:[],friendRequests:[],posts:[]},
+          {name:'Pedro Reyes', email:'pedro@example.com', passwordHash:h, friends:[],friendRequests:[],posts:[]}
+        ];
+        saveUsers(samples);
+        alert('Seeded '+samples.length+' demo users. You can log in with password "password" for each.');
+        try{ renderUsersList(); }catch(e){}
+      }catch(e){ alert('Seeding failed: '+(e && e.message)); }
+    }
 
     // Achievements: species list and unlocked detection
     const SPECIES = [
