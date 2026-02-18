@@ -215,6 +215,20 @@
       try{ const total = getUsers().length; input.placeholder = (input.placeholder||'Search...') + ' ('+total+' users)'; }catch(e){}
         input.setAttribute('autocomplete','off');
         input.placeholder = 'Search name or email...';
+        // show suggestions when the input is focused (useful for mobile and desktop)
+        input.addEventListener('focus', e=>{
+          const q = (e.target.value||'').trim();
+          if(!q){
+            // show top users when empty
+            try{
+              const users = (getUsers()||[]).slice().sort((a,b)=>((a.name||'')>=(b.name||'')?1:-1)).slice(0,8);
+              showResultsFor(form, users, '');
+            }catch(err){ }
+          } else {
+            const results = searchUsers(q).slice(0,8);
+            showResultsFor(form, results, q);
+          }
+        });
       input.addEventListener('input', e=>{
         const q = e.target.value;
         const results = searchUsers(q).slice(0,8);
