@@ -149,11 +149,12 @@
         console.debug('searchUsers query:', q);
         const users = getUsers() || [];
         console.debug('searchUsers usersCount:', users.length);
-        // match only by username (the `name` field). Do not match email.
-        const matches = users.filter(u=>{
-          const name = normalizeQuery(u.name||'');
-          return name && name.includes(q);
-        });
+          // match by username (the `name` field) OR email
+          const matches = users.filter(u=>{
+            const name = normalizeQuery(u.name||'');
+            const email = normalizeQuery(u.email||'');
+            return (name && name.includes(q)) || (email && email.includes(q));
+          });
         console.debug('searchUsers matches:', matches.map(m=>({name:m.name,email:m.email}))); 
         return matches;
       }catch(e){ console.error('searchUsers error', e); return []; }
@@ -212,7 +213,8 @@
       if(!input) return;
       // show how many users exist to help debug empty-search issues
       try{ const total = getUsers().length; input.placeholder = (input.placeholder||'Search...') + ' ('+total+' users)'; }catch(e){}
-      input.setAttribute('autocomplete','off');
+        input.setAttribute('autocomplete','off');
+        input.placeholder = 'Search name or email...';
       input.addEventListener('input', e=>{
         const q = e.target.value;
         const results = searchUsers(q).slice(0,8);
@@ -628,6 +630,7 @@
     try{
       if(document.getElementById('friendsList')){ renderFriendsList(); }
     }catch(e){}
+    try{ if(document.getElementById('usersList')){ renderUsersList(); } }catch(e){}
     try{
       if(document.getElementById('notificationsList')){ renderNotifications(); }
     }catch(e){}
@@ -673,6 +676,30 @@
         const cap = document.createElement('div'); cap.className='muted'; cap.style.fontSize='0.85rem';
         cap.textContent = `${t.userName}${t.caption? ' - '+t.caption:''}`;
         tile.appendChild(cap); grid.appendChild(tile);
+      });
+    }
+
+    // People page render (list all users)
+    function renderUsersList(){
+      const list = document.getElementById('usersList'); if(!list) return;
+      const users = getUsers() || [];
+      if(users.length===0){ list.innerHTML = '<p class="muted">No users yet.</p>'; return }
+      list.innerHTML = '';
+      users.forEach(u=>{
+        ensureUserFields(u);
+        const card = document.createElement('div'); card.style.display='flex'; card.style.alignItems='center'; card.style.justifyContent='space-between'; card.style.padding='12px'; card.style.borderRadius='8px'; card.style.border='1px solid rgba(15,23,42,0.04)';
+        const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='12px';
+        const av = document.createElement('img'); av.src = u.profilePic || ('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="100%" height="100%" fill="%23eceff6"/></svg>'); av.style.width='56px'; av.style.height='56px'; av.style.borderRadius='8px'; av.style.objectFit='cover';
+        const meta = document.createElement('div');
+        const name = document.createElement('div'); name.style.fontWeight='700'; name.textContent = u.name || u.email;
+        const em = document.createElement('div'); em.className='muted'; em.textContent = u.email;
+        meta.appendChild(name); meta.appendChild(em);
+        left.appendChild(av); left.appendChild(meta);
+        const actions = document.createElement('div');
+        const view = document.createElement('a'); view.href = 'profile.html?u='+encodeURIComponent(u.email); view.className='btn small'; view.textContent='View';
+        actions.appendChild(view);
+        card.appendChild(left); card.appendChild(actions);
+        list.appendChild(card);
       });
     }
 
