@@ -54,6 +54,15 @@
       })
     }
 
+    // ensure body has top padding equal to nav height (handles pretty URLs / Netlify and wrapping nav)
+    try{
+      const navEl = document.querySelector('.topnav');
+      function applyNavPadding(){
+        if(navEl){ document.body.style.paddingTop = navEl.offsetHeight + 'px'; }
+      }
+      applyNavPadding(); window.addEventListener('resize', applyNavPadding);
+    }catch(e){}
+
     if(signupForm){
       signupForm.addEventListener('submit', async e=>{
         e.preventDefault();
@@ -313,7 +322,9 @@
           if(portraitDiv){
             // remove existing overlay if any
             const existing = portraitDiv.querySelector('.upload-overlay'); if(existing) existing.remove();
-            const fileProfile = document.createElement('input'); fileProfile.type='file'; fileProfile.accept='image/*'; fileProfile.className='file-input';
+            // create a hidden file input appended to body so some mobile UAs don't render native controls in-layout
+            const fileProfile = document.createElement('input'); fileProfile.type='file'; fileProfile.accept='image/*'; fileProfile.className='file-input'; fileProfile.style.display='none';
+            document.body.appendChild(fileProfile);
             const overlay = document.createElement('div'); overlay.className='upload-overlay';
             const overlayBtn = document.createElement('button'); overlayBtn.className='upload-btn'; overlayBtn.innerHTML = '<span class="icon"></span>Change Photo';
             overlayBtn.addEventListener('click', ()=> fileProfile.click());
@@ -324,14 +335,15 @@
               // add activity for profile pic change
               addActivity({type:'profile_pic', user:current.email, img:data, timestamp:Date.now()});
             });
-            overlay.appendChild(fileProfile); overlay.appendChild(overlayBtn);
+            overlay.appendChild(overlayBtn);
             portraitDiv.appendChild(overlay);
           }
           // fallback visible control (in case overlay hidden by CSS or layout)
           if(controls){
             const existingFallback = controls.querySelector('.profile-photo-fallback'); if(existingFallback) existingFallback.remove();
             const fallback = document.createElement('div'); fallback.className='profile-photo-fallback'; fallback.style.marginTop='8px';
-            const fp = document.createElement('input'); fp.type='file'; fp.accept='image/*'; fp.className='file-input';
+            // fallback visible button; keep file input hidden and appended to body
+            const fp = document.createElement('input'); fp.type='file'; fp.accept='image/*'; fp.className='file-input'; fp.style.display='none'; document.body.appendChild(fp);
             const fb = document.createElement('button'); fb.className='upload-btn'; fb.textContent = 'Change Profile Photo';
             fb.addEventListener('click', ()=> fp.click());
             fp.addEventListener('change', async ()=>{
@@ -340,7 +352,7 @@
               const u = getUserByEmail(current.email); if(!u) return; ensureUserFields(u); u.profilePic = data; updateUserInStore(u); renderProfile(viewEmail); alert('Profile photo updated.');
               addActivity({type:'profile_pic', user:current.email, img:data, timestamp:Date.now()});
             });
-            fallback.appendChild(fp); fallback.appendChild(fb);
+            fallback.appendChild(fb);
             controls.appendChild(fallback);
           }
         }catch(e){}
@@ -348,7 +360,8 @@
         // new post area: caption + choose button + preview + post button
         if(newPostArea) newPostArea.innerHTML = '';
         const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.style.marginBottom='8px'; caption.style.padding='8px'; caption.style.borderRadius='8px'; caption.style.border='1px solid rgba(15,23,42,0.06)'; caption.style.width='100%';
-        const postFile = document.createElement('input'); postFile.type='file'; postFile.accept='image/*,video/*'; postFile.className='file-input';
+        // hidden file input for posts appended to body to avoid mobile UA display issues
+        const postFile = document.createElement('input'); postFile.type='file'; postFile.accept='image/*,video/*'; postFile.className='file-input'; postFile.style.display='none'; document.body.appendChild(postFile);
         let selectedPostData = null;
         const preview = document.createElement('div'); preview.style.margin='8px 0';
         const previewImg = document.createElement('img'); previewImg.style.maxWidth='220px'; previewImg.style.borderRadius='8px'; previewImg.style.display='none';
@@ -383,7 +396,7 @@
           caption.value=''; postFile.value=''; selectedPostData = null; previewImg.src=''; previewVid.src=''; previewImg.style.display='none'; previewVid.style.display='none'; renderPosts(viewEmail); renderActivityFeed(); renderGallery(); alert('Posted.');
         });
 
-        if(newPostArea){ newPostArea.appendChild(caption); newPostArea.appendChild(postFile); newPostArea.appendChild(chooseBtn); newPostArea.appendChild(submitBtn); newPostArea.appendChild(preview); }
+        if(newPostArea){ newPostArea.appendChild(caption); newPostArea.appendChild(chooseBtn); newPostArea.appendChild(submitBtn); newPostArea.appendChild(preview); }
       } else {
         if(controls) controls.innerHTML = '';
         if(newPostArea) newPostArea.innerHTML = '';
