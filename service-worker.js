@@ -10,7 +10,11 @@ const ASSETS = [
   '/notifications.html',
   '/style.css',
   '/app.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/images/icons/icon-192.svg',
+  '/images/icons/icon-512.svg',
+  '/images/icons/icon-192.png',
+  '/images/icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {

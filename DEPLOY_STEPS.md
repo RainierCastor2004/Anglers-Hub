@@ -65,7 +65,7 @@ Prereqs: Node.js, Java JDK 11+, Android SDK/command-line tools, `@bubblewrap/cli
 
 ```bash
 npm install -g @bubblewrap/cli
-bubblewrap init --manifest=https://YOUR_SITE --packageId=com.example.anglershub --name="Angler's Hub"
+bubblewrap init --manifest=https://aglrshub.netlify.app/ --packageId=com.example.anglershub --name="Angler's Hub"
 bubblewrap build --manifest=twa-manifest.json --output=app.aab
 ```
 

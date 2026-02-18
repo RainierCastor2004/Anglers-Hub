@@ -367,6 +367,8 @@
           if(controls){
             const existingFallback = controls.querySelector('.profile-photo-fallback'); if(existingFallback) existingFallback.remove();
             const fallback = document.createElement('div'); fallback.className='profile-photo-fallback'; fallback.style.marginTop='8px';
+            // remove any previously appended hidden file inputs to avoid stale elements
+            document.querySelectorAll('.file-input').forEach(n=>n.remove());
             // fallback visible button; keep file input hidden and appended to body
             const fp = document.createElement('input'); fp.type='file'; fp.accept='image/*'; fp.className='file-input'; fp.style.display='none'; document.body.appendChild(fp);
             const fb = document.createElement('button'); fb.className='upload-btn'; fb.textContent = 'Change Profile Photo';
@@ -385,6 +387,8 @@
         // new post area: caption + choose button + preview + post button
         if(newPostArea) newPostArea.innerHTML = '';
         const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.style.marginBottom='8px'; caption.style.padding='8px'; caption.style.borderRadius='8px'; caption.style.border='1px solid rgba(15,23,42,0.06)'; caption.style.width='100%';
+        // remove any previously appended hidden file inputs to avoid duplicates/stale handlers
+        document.querySelectorAll('.file-input').forEach(n=>n.remove());
         // hidden file input for posts appended to body to avoid mobile UA display issues
         const postFile = document.createElement('input'); postFile.type='file'; postFile.accept='image/*,video/*'; postFile.className='file-input'; postFile.style.display='none'; document.body.appendChild(postFile);
         let selectedPostData = null;
@@ -438,9 +442,11 @@
       if(!viewEmail || viewEmail===current.email){ container.innerHTML = '<em>This is your profile.</em>'; return }
       const viewUser = getUserByEmail(viewEmail);
       if(!viewUser){ container.innerHTML = '<em>User not found.</em>'; return }
-      ensureUserFields(viewUser);
+      // use the full stored user object for the current user (not the lightweight session object)
+      const me = getUserByEmail(current.email);
+      ensureUserFields(me); ensureUserFields(viewUser);
       // check states
-      const hasRequestFromView = (current.friendRequests||[]).some(r=>r.from===viewEmail);
+      const hasRequestFromView = (me.friendRequests||[]).some(r=>r.from===viewEmail);
       const iSentRequest = (viewUser.friendRequests||[]).some(r=>r.from===current.email);
       const friends = areFriends(current.email, viewEmail);
 
