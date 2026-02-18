@@ -139,10 +139,18 @@
     /* --------------------
        Nav search (shared)
        -------------------- */
+    function normalizeQuery(s){ try{ return (s||'').toString().normalize('NFKD').replace(/\p{Diacritic}/gu,'').toLowerCase().trim(); }catch(e){ return (s||'').toString().toLowerCase().trim(); } }
+
     function searchUsers(q){
+      q = normalizeQuery(q);
       if(!q) return [];
-      q = q.toLowerCase().trim();
-      return getUsers().filter(u=>((u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)));
+      // for debugging: emit to console so it's easier to see why nothing appears
+      try{ console.debug('searchUsers query:', q); }catch(e){}
+      return getUsers().filter(u=>{
+        const name = normalizeQuery(u.name||'');
+        const email = normalizeQuery(u.email||'');
+        return name.includes(q) || email.includes(q);
+      });
     }
 
     function createResultsContainer(){
@@ -155,11 +163,23 @@
 
     const resultsCache = new WeakMap();
 
-    function showResultsFor(form, list){
+    function showResultsFor(form, list, q){
       let container = resultsCache.get(form);
       if(!container) container = createResultsContainer(), resultsCache.set(form, container);
       container.innerHTML = '';
-      if(!list || list.length===0){ container.style.display='none'; return }
+      if(!list || list.length===0){
+        // show a helpful empty state so users know the search ran
+        const el = document.createElement('div'); el.className='item muted';
+        el.textContent = q ? ('No results for "'+q+'"') : 'No results';
+        container.appendChild(el);
+        const inp = form.querySelector('.search-input');
+        const rect = inp.getBoundingClientRect();
+        container.style.minWidth = Math.max(rect.width,220)+'px';
+        container.style.left = (rect.left + window.scrollX) + 'px';
+        container.style.top = (rect.bottom + window.scrollY) + 'px';
+        container.style.display = 'block';
+        return
+      }
       list.forEach(u=>{
         const el = document.createElement('div');
         el.className = 'item';
@@ -187,7 +207,7 @@
       input.addEventListener('input', e=>{
         const q = e.target.value;
         const results = searchUsers(q).slice(0,8);
-        showResultsFor(form, results);
+        showResultsFor(form, results, q);
       });
       form.addEventListener('submit', e=>{
         e.preventDefault();
@@ -195,7 +215,7 @@
         const results = searchUsers(q);
         if(results.length===1){ window.location.href = 'profile.html?u='+encodeURIComponent(results[0].email); return }
         // otherwise show results (already shown by input), but focus container
-        showResultsFor(form, results.slice(0,8));
+        showResultsFor(form, results.slice(0,8), q);
       });
       // hide results when clicking outside
       document.addEventListener('click', ev=>{
