@@ -3,24 +3,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profile</title>
+  <title>Angler's Hub PH — Profile</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <nav class="topnav">
+    <a href="home.html" class="brand">Angler's Hub PH</a>
     <a href="home.html">Home</a>
     <a href="gallery.html">Gallery</a>
     <a href="achievements.html">Achievements</a>
     <a href="chats.html">Chats</a>
     <a href="notifications.html">Notifications</a>
     <a href="profile.html" class="active">Profile</a>
+    <form class="nav-search" action="#" method="get">
+      <input name="q" type="search" placeholder="Search..." class="search-input">
+      <button type="submit" class="btn small">Search</button>
+    </form>
+    <div class="spacer"></div>
     <button id="logout" class="btn small">Logout</button>
   </nav>
   <main class="container">
-    <section class="card">
-      <h1>Profile</h1>
-      <p>Name: <span id="profileName"></span></p>
-      <p>Email: <span id="profileEmail"></span></p>
+    <section class="card profile-card">
+      <div class="profile-head" style="display:flex;gap:18px;align-items:center">
+        <div class="portrait">
+          <img id="profilePic" src="" alt="avatar">
+        </div>
+        <div>
+          <h1 id="profileTitle">Profile</h1>
+          <p>Name: <span id="profileName"></span></p>
+          <p>Email: <span id="profileEmail"></span></p>
+          <div id="friendActions" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div id="profileControls" style="margin-top:14px"></div>
+
+      <hr style="margin:16px 0">
+
+      <section id="postsSection">
+        <h2>Posts</h2>
+        <div id="newPostArea" style="margin-bottom:12px"></div>
+        <div id="postsList"></div>
+      </section>
     </section>
   </main>
   <script src="app.js"></script>

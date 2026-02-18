@@ -1,10 +1,10 @@
 :root{
-  --bg:#f8fafc;
+  --bg:#f0f2f5;
   --card:#ffffff;
   --text:#0f172a;
-  --muted:#64748b;
-  --accent-start:#6EE7B7;
-  --accent-end:#3B82F6;
+  --muted:#556275;
+  --accent-start:#1877F2;
+  --accent-end:#2D65E6;
   --nav-height:64px;
 }
 
@@ -29,16 +29,54 @@ body{
   align-items:center;
   gap:12px;
   padding:0 18px;
-  background:linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45));
+  background:#ffffffcc;
+  border-bottom:1px solid rgba(0,0,0,0.06);
   backdrop-filter: blur(6px);
-  box-shadow:0 6px 18px rgba(2,6,23,0.06);
   z-index:1000;
 }
-.topnav .brand{font-weight:700;margin-right:6px}
+.topnav .brand{font-weight:800;margin-right:10px;color:var(--accent-start);font-size:1.05rem;text-decoration:none}
 .topnav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:600}
 .topnav a.active{background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff}
 .topnav .spacer{flex:1}
 .topnav button{margin-left:8px}
+
+/* Search in top navigation */
+.nav-search{display:flex;align-items:center;gap:8px;margin-left:6px}
+.search-input{padding:8px 10px;border-radius:8px;border:1px solid rgba(15,23,42,0.08);min-width:180px}
+.nav-search .btn.small{padding:6px 8px}
+@media (max-width:480px){.search-input{min-width:110px} .nav-search{display:none}}
+
+/* Search results dropdown */
+.search-results{position:absolute;background:var(--card);border:1px solid rgba(15,23,42,0.06);box-shadow:0 8px 20px rgba(2,6,23,0.06);border-radius:8px;overflow:hidden;margin-top:6px;min-width:220px;z-index:1200}
+.search-results .item{padding:8px 10px;border-bottom:1px solid rgba(15,23,42,0.04);cursor:pointer}
+.search-results .item:last-child{border-bottom:none}
+.search-results .item:hover{background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff}
+
+/* Friend action button */
+.friend-btn{padding:8px 10px;border-radius:8px;border:1px solid rgba(15,23,42,0.06);background:#fff;cursor:pointer;margin-right:8px}
+.friend-btn.primary{background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff;border:none}
+.friend-btn[disabled]{opacity:0.65;cursor:default}
+
+/* Chat layout */
+.chat-wrap{display:flex;gap:12px}
+.friends-list{width:220px;border-right:1px solid rgba(15,23,42,0.04);padding:8px;border-radius:8px;background:transparent}
+.friends-list .friend{padding:8px;border-radius:8px;cursor:pointer;margin-bottom:6px}
+.friends-list .friend:hover{background:rgba(13,50,126,0.06)}
+.chat-box{flex:1;display:flex;flex-direction:column;min-height:320px}
+.chat-header{font-weight:700;padding:8px;border-bottom:1px solid rgba(15,23,42,0.04)}
+.messages{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.messages .msg{max-width:70%;padding:8px 10px;border-radius:10px}
+.messages .msg.me{align-self:flex-end;background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff}
+.messages .msg.other{align-self:flex-start;background:#eef3ff}
+.message-form{display:flex;gap:8px;padding:8px;border-top:1px solid rgba(15,23,42,0.04)}
+.message-form input{flex:1}
+
+/* Notifications */
+.notifications-list{list-style:none;padding:0;margin:0}
+.notifications-list li{padding:10px;border-bottom:1px solid rgba(15,23,42,0.04);cursor:pointer}
+.notifications-list li.unread{background:rgba(29,78,216,0.06)}
+
+@media (max-width:720px){.friends-list{display:none}.chat-wrap{gap:6px}}
 
 /* Page container */
 .container{width:100%;max-width:920px;margin:0 auto;padding:20px}
@@ -48,6 +86,22 @@ body{
 .portrait{width:140px;height:140px;margin:0 auto 14px;position:relative}
 .portrait img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 .portrait .overlay{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);background:rgba(0,0,0,0.45);color:#fff;padding:6px 10px;border-radius:999px;font-weight:600;font-size:0.9rem}
+
+/* Profile posts */
+.profile-card .profile-head .portrait{width:120px;height:120px;margin:0}
+.profile-card #profileTitle{margin:0 0 6px}
+.post{border-radius:10px;padding:10px;background:var(--card);box-shadow:0 6px 18px rgba(2,6,23,0.04);margin-bottom:12px}
+.post img{max-width:100%;border-radius:8px;display:block;margin-bottom:8px}
+.post .caption{color:var(--muted);font-size:0.95rem}
+.new-post-form{display:flex;flex-direction:column;gap:8px}
+.file-input{display:none}
+
+/* Styled upload button */
+.upload-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid rgba(15,23,42,0.06);background:#fff;cursor:pointer}
+.upload-btn.primary{background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff;border:none}
+.upload-btn .icon{width:18px;height:18px;display:inline-block;border-radius:4px;background:rgba(0,0,0,0.06);flex:0 0 18px}
+.profile-head .portrait{position:relative}
+.profile-head .portrait .upload-overlay{position:absolute;right:6px;bottom:6px}
 
 /* Auth card */
 .auth-card{text-align:center;max-width:420px;margin:40px auto}

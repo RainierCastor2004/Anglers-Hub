@@ -3,23 +3,41 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chats</title>
+  <title>Angler's Hub PH — Chats</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <nav class="topnav">
+    <a href="home.html" class="brand">Angler's Hub PH</a>
     <a href="home.html">Home</a>
     <a href="gallery.html">Gallery</a>
     <a href="achievements.html">Achievements</a>
     <a href="chats.html" class="active">Chats</a>
     <a href="notifications.html">Notifications</a>
     <a href="profile.html">Profile</a>
+    <form class="nav-search" action="#" method="get">
+      <input name="q" type="search" placeholder="Search..." class="search-input">
+      <button type="submit" class="btn small">Search</button>
+    </form>
+    <div class="spacer"></div>
     <button id="logout" class="btn small">Logout</button>
   </nav>
   <main class="container">
     <section class="card">
       <h1>Chats</h1>
-      <p>Simple chat demo (client-side only).</p>
+      <div class="chat-wrap">
+        <aside class="friends-list" id="friendsList">
+          <!-- friends will be populated here -->
+        </aside>
+        <div class="chat-box">
+          <div id="chatHeader" class="chat-header">Select a friend to start chat</div>
+          <div id="messagesList" class="messages"></div>
+          <form id="messageForm" class="message-form">
+            <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
+            <button type="submit" class="btn">Send</button>
+          </form>
+        </div>
+      </div>
     </section>
   </main>
   <script src="app.js"></script>
