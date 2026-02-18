@@ -352,23 +352,9 @@
         try{
           const portraitDiv = document.querySelector('.profile-head .portrait');
           if(portraitDiv){
-            // remove existing overlay if any
+            // remove any existing overlay — we no longer show the small overlay button
             const existing = portraitDiv.querySelector('.upload-overlay'); if(existing) existing.remove();
-            // create a hidden file input appended to body so some mobile UAs don't render native controls in-layout
-            const fileProfile = document.createElement('input'); fileProfile.type='file'; fileProfile.accept='image/*'; fileProfile.className='file-input'; fileProfile.style.display='none';
-            document.body.appendChild(fileProfile);
-            const overlay = document.createElement('div'); overlay.className='upload-overlay';
-            const overlayBtn = document.createElement('button'); overlayBtn.className='upload-btn'; overlayBtn.innerHTML = '<span class="icon"></span>Change Photo';
-            overlayBtn.addEventListener('click', ()=> fileProfile.click());
-            fileProfile.addEventListener('change', async ()=>{
-              const f = fileProfile.files && fileProfile.files[0]; if(!f) return;
-              const data = await fileToDataURL(f);
-              const u = getUserByEmail(current.email); if(!u) return; ensureUserFields(u); u.profilePic = data; updateUserInStore(u); renderProfile(viewEmail); alert('Profile photo updated.');
-              // add activity for profile pic change
-              addActivity({type:'profile_pic', user:current.email, img:data, timestamp:Date.now()});
-            });
-            overlay.appendChild(overlayBtn);
-            portraitDiv.appendChild(overlay);
+            // intentionally do not create a portrait overlay button; use the visible "Change Profile Photo" control below
           }
           // fallback visible control (in case overlay hidden by CSS or layout)
           if(controls){
