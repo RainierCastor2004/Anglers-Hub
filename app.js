@@ -315,7 +315,7 @@
             const existing = portraitDiv.querySelector('.upload-overlay'); if(existing) existing.remove();
             const fileProfile = document.createElement('input'); fileProfile.type='file'; fileProfile.accept='image/*'; fileProfile.className='file-input';
             const overlay = document.createElement('div'); overlay.className='upload-overlay';
-            const overlayBtn = document.createElement('button'); overlayBtn.className='upload-btn'; overlayBtn.innerHTML = '<span class="icon"></span>Change';
+            const overlayBtn = document.createElement('button'); overlayBtn.className='upload-btn'; overlayBtn.innerHTML = '<span class="icon"></span>Change Photo';
             overlayBtn.addEventListener('click', ()=> fileProfile.click());
             fileProfile.addEventListener('change', async ()=>{
               const f = fileProfile.files && fileProfile.files[0]; if(!f) return;
@@ -326,6 +326,22 @@
             });
             overlay.appendChild(fileProfile); overlay.appendChild(overlayBtn);
             portraitDiv.appendChild(overlay);
+          }
+          // fallback visible control (in case overlay hidden by CSS or layout)
+          if(controls){
+            const existingFallback = controls.querySelector('.profile-photo-fallback'); if(existingFallback) existingFallback.remove();
+            const fallback = document.createElement('div'); fallback.className='profile-photo-fallback'; fallback.style.marginTop='8px';
+            const fp = document.createElement('input'); fp.type='file'; fp.accept='image/*'; fp.className='file-input';
+            const fb = document.createElement('button'); fb.className='upload-btn'; fb.textContent = 'Change Profile Photo';
+            fb.addEventListener('click', ()=> fp.click());
+            fp.addEventListener('change', async ()=>{
+              const f = fp.files && fp.files[0]; if(!f) return;
+              const data = await fileToDataURL(f);
+              const u = getUserByEmail(current.email); if(!u) return; ensureUserFields(u); u.profilePic = data; updateUserInStore(u); renderProfile(viewEmail); alert('Profile photo updated.');
+              addActivity({type:'profile_pic', user:current.email, img:data, timestamp:Date.now()});
+            });
+            fallback.appendChild(fp); fallback.appendChild(fb);
+            controls.appendChild(fallback);
           }
         }catch(e){}
 
