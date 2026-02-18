@@ -1,0 +1,9 @@
+{
+  "host": "https://aglrshub.netlify.app",
+  "packageId": "com.example.anglershub",
+  "launcherName": "Angler's Hub",
+  "display": "standalone",
+  "themeColor": "#1877F2",
+  "backgroundColor": "#ffffff",
+  "versionCode": 1
+}
