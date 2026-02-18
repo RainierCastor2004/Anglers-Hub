@@ -72,6 +72,38 @@
         const users = getUsers();
         if(users.find(u=>u.email===email)){ alert('Account already exists with that email.'); return }
         const passHash = await hashStr(pass);
+          // export / import controls for syncing between devices (download JSON on PC, import on mobile)
+          try{
+            const syncWrap = document.createElement('div'); syncWrap.style.marginTop='10px'; syncWrap.style.display='flex'; syncWrap.style.gap='8px'; syncWrap.style.flexWrap='wrap';
+            const exportBtn = document.createElement('button'); exportBtn.className='upload-btn'; exportBtn.textContent='Export Profile';
+            exportBtn.addEventListener('click', ()=>{
+              const u = getUserByEmail(current.email); if(!u){ alert('No profile to export'); return }
+              const blob = new Blob([JSON.stringify(u, null, 2)], {type:'application/json'});
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = (u.email||'profile') + '-profile.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+            });
+            const importInput = document.createElement('input'); importInput.type='file'; importInput.accept='application/json'; importInput.style.display='none'; document.body.appendChild(importInput);
+            const importBtn = document.createElement('button'); importBtn.className='upload-btn'; importBtn.textContent='Import Profile';
+            importBtn.addEventListener('click', ()=> importInput.click());
+            importInput.addEventListener('change', async ()=>{
+              const f = importInput.files && importInput.files[0]; if(!f) return; try{
+                const txt = await f.text(); const obj = JSON.parse(txt);
+                if(!obj || !obj.email){ alert('Invalid profile file'); return }
+                // replace or add user record
+                const users = getUsers(); const idx = users.findIndex(x=>x.email===obj.email);
+                if(idx>=0) users[idx] = obj; else users.push(obj);
+                saveUsers(users);
+                // if importing current user's email, set as current
+                const cur = getCurrent(); if(cur && cur.email === obj.email){ setCurrent({name:obj.name,email:obj.email}, true); }
+                updateUserInStore(obj);
+                try{ renderProfile(obj.email); }catch(e){}
+                try{ renderActivityFeed(); renderGallery(); }catch(e){}
+                alert('Profile imported successfully.');
+              }catch(err){ alert('Import failed: '+err.message); }
+            });
+            syncWrap.appendChild(exportBtn); syncWrap.appendChild(importBtn);
+            if(controls) controls.appendChild(syncWrap);
+          }catch(e){}
         users.push({name:name,email:email,passwordHash:passHash});
         saveUsers(users);
         // on signup we remember by default
@@ -355,49 +387,6 @@
             fallback.appendChild(fb);
             controls.appendChild(fallback);
           }
-
-        // Export / Import profile data (helps move data between devices)
-        try{
-          const existingX = controls.querySelector('.profile-export-import'); if(existingX) existingX.remove();
-          const xi = document.createElement('div'); xi.className='profile-export-import'; xi.style.marginTop='10px'; xi.style.display='flex'; xi.style.gap='8px'; xi.style.flexWrap='wrap';
-          // download/export button
-          const exp = document.createElement('button'); exp.className='btn'; exp.textContent = 'Download Profile Data';
-          exp.addEventListener('click', ()=>{
-            const u = getUserByEmail(current.email); if(!u){ alert('No user data to export.'); return }
-            try{
-              const data = JSON.stringify(u);
-              const blob = new Blob([data], {type:'application/json'});
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a'); a.href = url; a.download = (u.email||'profile') + '.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-            }catch(e){ alert('Failed to create export file.'); }
-          });
-          // import button + hidden input appended to body
-          const imp = document.createElement('button'); imp.className='btn'; imp.textContent = 'Import Profile Data';
-          const impInput = document.createElement('input'); impInput.type='file'; impInput.accept='application/json'; impInput.style.display='none'; document.body.appendChild(impInput);
-          imp.addEventListener('click', ()=> impInput.click());
-          impInput.addEventListener('change', async ()=>{
-            const f = impInput.files && impInput.files[0]; if(!f) return;
-            try{
-              const txt = await (new Response(f)).text();
-              const obj = JSON.parse(txt);
-              if(!obj || !obj.email){ alert('Invalid profile file.'); return }
-              // merge with existing user store (replace user with same email)
-              const users = getUsers();
-              const idx = users.findIndex(x=>x.email===obj.email);
-              if(idx>=0) users[idx] = obj; else users.push(obj);
-              saveUsers(users);
-              // set current to imported user if it matches current email or ask to switch
-              if(obj.email === current.email){ setCurrent({name:obj.name,email:obj.email}, true); }
-              alert('Profile data imported. Refreshing view...');
-              renderProfile(viewEmail);
-              renderFriendActions(viewEmail);
-              renderPosts(viewEmail);
-              try{ renderGallery(); renderActivityFeed(); renderAchievements(); }catch(e){}
-            }catch(e){ alert('Failed to read import file.'); }
-          });
-          xi.appendChild(exp); xi.appendChild(imp);
-          controls.appendChild(xi);
-        }catch(e){}
         }catch(e){}
 
         // new post area: caption + choose button + preview + post button
