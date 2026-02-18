@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80" width="160" height="80">
+  <g fill="#2D65E6">
+    <ellipse cx="74" cy="40" rx="48" ry="18"/>
+    <polygon points="120,40 158,28 158,52"/>
+    <rect x="18" y="34" width="10" height="12" rx="2" fill="#0f172a"/>
+  </g>
+  <text x="80" y="76" font-size="10" text-anchor="middle" fill="#0f172a">Marlin</text>
+</svg>
