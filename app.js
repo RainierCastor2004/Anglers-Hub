@@ -201,6 +201,16 @@
       }catch(e){}
     }
 
+    /* Activity feed (home) */
+    function addActivity(act){
+      try{
+        const a = JSON.parse(localStorage.getItem('activities')||'[]');
+        a.unshift(act);
+        localStorage.setItem('activities', JSON.stringify(a));
+      }catch(e){}
+    }
+    function getActivities(){ try{return JSON.parse(localStorage.getItem('activities')||'[]')}catch(e){return[]} }
+
     function getNotificationsFor(email){
       try{ return (JSON.parse(localStorage.getItem('notifications')||'[]')).filter(x=>x.to===email) }catch(e){return []}
     }
@@ -311,25 +321,53 @@
               const f = fileProfile.files && fileProfile.files[0]; if(!f) return;
               const data = await fileToDataURL(f);
               const u = getUserByEmail(current.email); if(!u) return; ensureUserFields(u); u.profilePic = data; updateUserInStore(u); renderProfile(viewEmail); alert('Profile photo updated.');
+              // add activity for profile pic change
+              addActivity({type:'profile_pic', user:current.email, img:data, timestamp:Date.now()});
             });
             overlay.appendChild(fileProfile); overlay.appendChild(overlayBtn);
             portraitDiv.appendChild(overlay);
           }
         }catch(e){}
 
-        // new post area: caption + single choose&post button
+        // new post area: caption + choose button + preview + post button
         if(newPostArea) newPostArea.innerHTML = '';
         const caption = document.createElement('input'); caption.type='text'; caption.placeholder='Caption (optional)'; caption.style.marginBottom='8px'; caption.style.padding='8px'; caption.style.borderRadius='8px'; caption.style.border='1px solid rgba(15,23,42,0.06)'; caption.style.width='100%';
-        const postFile = document.createElement('input'); postFile.type='file'; postFile.accept='image/*'; postFile.className='file-input';
-        const postBtn = document.createElement('button'); postBtn.className='upload-btn primary'; postBtn.innerHTML = '<span class="icon"></span>Choose & Post Photo';
-        postBtn.addEventListener('click', ()=> postFile.click());
+        const postFile = document.createElement('input'); postFile.type='file'; postFile.accept='image/*,video/*'; postFile.className='file-input';
+        let selectedPostData = null;
+        const preview = document.createElement('div'); preview.style.margin='8px 0';
+        const previewImg = document.createElement('img'); previewImg.style.maxWidth='220px'; previewImg.style.borderRadius='8px'; previewImg.style.display='none';
+        const previewVid = document.createElement('video'); previewVid.style.maxWidth='320px'; previewVid.controls = true; previewVid.style.display='none';
+        preview.appendChild(previewImg); preview.appendChild(previewVid);
+
+        const chooseBtn = document.createElement('button'); chooseBtn.className='upload-btn'; chooseBtn.innerHTML = '<span class="icon"></span>Choose Photo/Video';
+        chooseBtn.addEventListener('click', ()=> postFile.click());
+
         postFile.addEventListener('change', async ()=>{
           const f = postFile.files && postFile.files[0]; if(!f){ return }
           const data = await fileToDataURL(f);
-          const u = getUserByEmail(current.email); ensureUserFields(u);
-          u.posts.unshift({img:data,caption:caption.value||'',timestamp:Date.now()}); updateUserInStore(u); caption.value=''; postFile.value=''; renderPosts(viewEmail); alert('Posted.');
+          selectedPostData = {data, file: f};
+          // show preview depending on type
+          if((f.type||'').startsWith('video')){
+            previewImg.style.display='none'; previewVid.style.display='block'; previewVid.src = data; previewVid.load();
+          } else {
+            previewVid.style.display='none'; previewImg.style.display='block'; previewImg.src = data;
+          }
         });
-        if(newPostArea){ newPostArea.appendChild(caption); newPostArea.appendChild(postFile); newPostArea.appendChild(postBtn); }
+
+        const submitBtn = document.createElement('button'); submitBtn.className='btn primary'; submitBtn.textContent='Post';
+        submitBtn.addEventListener('click', async e=>{
+          e.preventDefault();
+          if(!selectedPostData){ alert('Please choose a photo or video first.'); return }
+          const f = selectedPostData.file; const data = selectedPostData.data;
+          const u = getUserByEmail(current.email); ensureUserFields(u);
+          const mediaType = (f.type||'').startsWith('video') ? 'video' : 'image';
+          u.posts.unshift({img:data,caption:caption.value||'',timestamp:Date.now(),mediaType:mediaType}); updateUserInStore(u);
+          // add activity for post
+          addActivity({type:'post', user:current.email, img:data, caption:caption.value||'', mediaType:mediaType, timestamp:Date.now()});
+          caption.value=''; postFile.value=''; selectedPostData = null; previewImg.src=''; previewVid.src=''; previewImg.style.display='none'; previewVid.style.display='none'; renderPosts(viewEmail); renderActivityFeed(); renderGallery(); alert('Posted.');
+        });
+
+        if(newPostArea){ newPostArea.appendChild(caption); newPostArea.appendChild(postFile); newPostArea.appendChild(chooseBtn); newPostArea.appendChild(submitBtn); newPostArea.appendChild(preview); }
       } else {
         if(controls) controls.innerHTML = '';
         if(newPostArea) newPostArea.innerHTML = '';
@@ -490,5 +528,88 @@
     }catch(e){}
     try{ if(window.location.pathname.endsWith('notifications.html')){ renderNotifications(); }
     }catch(e){}
+
+    // Home activity feed
+    function renderActivityFeed(){
+      const feed = document.getElementById('activityFeed'); if(!feed) return;
+      const acts = getActivities().slice(0,50);
+      if(acts.length===0){ feed.innerHTML = '<p class="muted">No recent activity.</p>'; return }
+      feed.innerHTML = '';
+      acts.forEach(a=>{
+        const box = document.createElement('div'); box.className='activity';
+        const thumb = document.createElement('div');
+        if(a.img){ const im = document.createElement('img'); im.src = a.img; thumb.appendChild(im); } else { const im = document.createElement('div'); im.style.width='84px'; im.style.height='84px'; im.style.background='rgba(0,0,0,0.05)'; thumb.appendChild(im); }
+        const meta = document.createElement('div'); meta.className='meta';
+        const who = getUserByEmail(a.user);
+        const title = document.createElement('div'); title.innerHTML = `<strong>${(who && who.name) ? who.name : a.user}</strong> ` + (a.type==='profile_pic' ? 'changed profile photo' : (a.type==='post' ? (a.mediaType==='video' ? 'posted a video' : 'posted a photo') : a.type));
+        const when = document.createElement('div'); when.className='muted'; when.style.fontSize='0.85rem'; when.textContent = new Date(a.timestamp).toLocaleString();
+        meta.appendChild(title);
+        if(a.caption) { const c = document.createElement('div'); c.className='caption'; c.textContent = a.caption; meta.appendChild(c); }
+        meta.appendChild(when);
+        box.appendChild(thumb); box.appendChild(meta); feed.appendChild(box);
+      });
+    }
+
+    // Gallery page render
+    function renderGallery(){
+      const grid = document.getElementById('galleryGrid'); if(!grid) return;
+      grid.innerHTML = '';
+      const users = getUsers();
+      const tiles = [];
+      users.forEach(u=>{ (u.posts||[]).forEach(p=>{ if(p.img && (!p.mediaType || p.mediaType==='image')) tiles.push({img:p.img, user:u.email, caption:p.caption}); }) });
+      if(tiles.length===0){ grid.innerHTML = '<p class="muted">No photos yet.</p>'; return }
+      tiles.forEach(t=>{ const tile = document.createElement('div'); tile.className='tile'; const img = document.createElement('img'); img.src = t.img; tile.appendChild(img); const cap = document.createElement('div'); cap.className='muted'; cap.style.fontSize='0.85rem'; cap.textContent = `${t.user} ${t.caption?'- '+t.caption:''}`; tile.appendChild(cap); grid.appendChild(tile); });
+    }
+
+    // Achievements: species list and unlocked detection
+    const SPECIES = [
+      {key:'lapu-lapu', label:'Lapu-lapu (Grouper)', emoji:'🐟'},
+      {key:'maya-maya', label:'Maya-maya (Snapper)', emoji:'🐠'},
+      {key:'tuna', label:'Tuna (Yellowfin)', emoji:'🐟'},
+      {key:'mahi-mahi', label:'Mahi-mahi (Dorado)', emoji:'🐬'},
+      {key:'bangus', label:'Bangus (Milkfish)', emoji:'🐟'},
+      {key:'tilapia', label:'Tilapia', emoji:'🐟'},
+      {key:'marlin', label:'Marlin', emoji:'🎣'},
+      {key:'sailfish', label:'Sailfish', emoji:'🎣'},
+      {key:'barracuda', label:'Barracuda', emoji:'🐡'},
+      {key:'trevally', label:'Trevally (GT)', emoji:'🐟'},
+      {key:'catfish', label:'Catfish', emoji:'🐟'},
+      {key:'snapper', label:'Red Snapper', emoji:'🐠'}
+    ];
+
+    function renderAchievements(){
+      const grid = document.getElementById('speciesGrid'); if(!grid) return;
+      grid.innerHTML = '';
+      const current = getCurrent(); if(!current){ grid.innerHTML = '<p class="muted">Log in to see unlocked species.</p>'; return }
+      const user = getUserByEmail(current.email); ensureUserFields(user);
+      SPECIES.forEach(s=>{
+        // unlocked when a post caption contains: UNLOCKED (Fish Species)
+        let unlocked = false;
+        (user.posts||[]).forEach(p=>{
+          const cap = (p.caption||'').toString();
+          const m = cap.match(/UNLOCKED\s*\(\s*([^\)]+)\s*\)/i);
+          if(m){
+            const fishName = m[1].trim().toLowerCase();
+            if(fishName.includes(s.key) || s.label.toLowerCase().includes(fishName) || fishName.includes(s.label.toLowerCase().split(' ')[0])) unlocked = true;
+          }
+        });
+        const el = document.createElement('div'); el.className = 'species' + (unlocked? '':' locked');
+        const icon = document.createElement('div'); icon.className='icon';
+        const im = document.createElement('img');
+        // prefer PNG if present, otherwise fallback to SVG
+        im.src = 'images/species/'+s.key+'.png';
+        im.alt = s.label;
+        im.onerror = function(){ this.onerror = null; this.src = 'images/species/'+s.key+'.svg'; };
+        icon.appendChild(im);
+        const label = document.createElement('div'); label.textContent = s.label; label.style.fontWeight='600'; label.style.textAlign='center';
+        const status = document.createElement('div'); status.className='muted'; status.style.fontSize='0.85rem'; status.textContent = unlocked? 'Unlocked':'Locked';
+        el.appendChild(icon); el.appendChild(label); el.appendChild(status); grid.appendChild(el);
+      });
+    }
+
+    // run pages renders
+    try{ if(window.location.pathname.endsWith('home.html')) renderActivityFeed(); }catch(e){}
+    try{ if(window.location.pathname.endsWith('gallery.html')) renderGallery(); }catch(e){}
+    try{ if(window.location.pathname.endsWith('achievements.html')) renderAchievements(); }catch(e){}
   })
 })();

@@ -95,6 +95,16 @@ body{
 .post .caption{color:var(--muted);font-size:0.95rem}
 .new-post-form{display:flex;flex-direction:column;gap:8px}
 .file-input{display:none}
+.activity{display:flex;gap:12px;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.04);margin-bottom:10px;align-items:flex-start}
+.activity img{width:84px;height:84px;object-fit:cover;border-radius:8px}
+.activity .meta{flex:1}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:12px}
+.gallery-grid .tile img{width:100%;height:140px;object-fit:cover;border-radius:8px}
+.species-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:12px}
+.species{display:flex;flex-direction:column;align-items:center;padding:12px;border-radius:10px;background:var(--card);box-shadow:0 6px 18px rgba(2,6,23,0.03)}
+.species .icon{margin-bottom:8px}
+.species .icon img{width:64px;height:48px;object-fit:contain}
+.species.locked{filter:grayscale(100%) opacity(0.45)}
 
 /* Styled upload button */
 .upload-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid rgba(15,23,42,0.06);background:#fff;cursor:pointer}
