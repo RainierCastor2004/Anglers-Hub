@@ -203,6 +203,8 @@
     document.querySelectorAll('form.nav-search').forEach(form=>{
       const input = form.querySelector('.search-input');
       if(!input) return;
+      // show how many users exist to help debug empty-search issues
+      try{ const total = getUsers().length; input.placeholder = (input.placeholder||'Search...') + ' ('+total+' users)'; }catch(e){}
       input.setAttribute('autocomplete','off');
       input.addEventListener('input', e=>{
         const q = e.target.value;
